@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $name = "sda-${{ github.ref_name }}-x86_64-windows.exe"
+          Copy-Item target/release/sda.exe $name
+          (Get-FileHash $name -Algorithm SHA256).Hash.ToLower() + "  " + $name | Out-File "$name.sha256" -Encoding ascii
+          Get-Content "$name.sha256"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            sda-${{ github.ref_name }}-x86_64-windows.exe
+            sda-${{ github.ref_name }}-x86_64-windows.exe.sha256
+          generate_release_notes: true
