@@ -3,6 +3,8 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  # Lets a release be rebuilt for an existing tag without moving it.
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
